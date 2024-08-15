@@ -2,7 +2,9 @@ let ballLaunched = false; // Variable to track if the ball has been launched
 let animationFrameId; // To track the current animation frame ID
 
 function addNoScrollClass() {
-    document.body.classList.add("no-scroll");
+    if (window.innerWidth > 768) {
+        document.body.classList.add("no-scroll");
+    }
 }
 
 function removeNoScrollClass() {

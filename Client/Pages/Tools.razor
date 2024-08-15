@@ -1,0 +1,84 @@
+﻿@page "/tools"
+@using System.Linq
+@using Microsoft.AspNetCore.Components.Web
+@using Shared.Models.Tools
+@using System.Text.RegularExpressions
+
+<h3 class="text-center mb-4">Tools</h3>
+
+<div class="container">
+    <!-- Center the search bar -->
+    <div class="row justify-content-center mb-4">
+        <div class="col-12 col-md-8 col-lg-6">
+            <div class="input-group">
+                <input @bind-value="searchTerm" @bind-value:event="oninput" @onkeypress="HandleEnterPress" class="form-control" placeholder="Search tools..." />
+                <button class="btn btn-primary" @onclick="FilterTools">Search</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Center the cards with consistent size -->
+    <div class="d-flex flex-wrap justify-content-center">
+        @if (filteredTools.Any())
+        {
+            @foreach (var tool in filteredTools)
+            {
+                <div class="card m-3 shadow-lg" style="width: 300px;">
+                    <div class="card-body d-flex flex-column">
+                        <h5 class="card-title text-center">@tool.Name</h5>
+                        <p class="card-text text-center">@tool.Description</p>
+                        <div class="mt-auto text-center">
+                            <a href="@tool.Link" class="btn btn-success">Visit</a>
+                        </div>
+                    </div>
+                </div>
+            }
+        }
+        else
+        {
+            <div class="col-12 text-center">
+                <p>No tools found. Please try a different search term.</p>
+            </div>
+        }
+    </div>
+</div>
+
+@code {
+    private string searchTerm = string.Empty;
+    private List<ToolModel> filteredTools = new();
+    private List<ToolModel> allTools = new();
+
+    protected override void OnInitialized()
+    {
+        allTools = ToolPageRegistry.GetTools(); // Load all tools initially
+        filteredTools = allTools; // Display all tools by default
+    }
+
+    private void FilterTools()
+    {
+        if (string.IsNullOrWhiteSpace(searchTerm))
+        {
+            filteredTools = allTools; // Show all tools if search term is empty
+        }
+        else
+        {
+            // Create a regex pattern that matches all words in any order
+            string pattern = @"(?=.*\b" + string.Join(@")(?=.*\b", searchTerm.Split(' ').Select(Regex.Escape)) + @")";
+
+            filteredTools = allTools
+                .Where(t => Regex.IsMatch(t.Name, pattern, RegexOptions.IgnoreCase) ||
+                            Regex.IsMatch(t.Description, pattern, RegexOptions.IgnoreCase))
+                .ToList();
+        }
+    }
+
+
+
+    private void HandleEnterPress(KeyboardEventArgs e)
+    {
+        if (e.Key == "Enter")
+        {
+            FilterTools();
+        }
+    }
+}

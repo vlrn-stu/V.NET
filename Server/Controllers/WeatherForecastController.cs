@@ -1,4 +1,4 @@
-using Microsoft.AspNetCore.Mvc;
+/*using Microsoft.AspNetCore.Mvc;
 using V.NET.Shared;
 
 namespace V.NET.Server.Controllers;
@@ -17,7 +17,7 @@ public class WeatherForecastController : ControllerBase
     public WeatherForecastController(ILogger<WeatherForecastController> logger)
     {
         _logger = logger;
-    }
+    }a
 
     [HttpGet]
     public IEnumerable<WeatherForecast> Get()
@@ -31,3 +31,4 @@ public class WeatherForecastController : ControllerBase
         .ToArray();
     }
 }
+*/

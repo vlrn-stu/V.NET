@@ -1,9 +1,48 @@
 ﻿@page "/"
 
-<PageTitle>Index</PageTitle>
+@inject IJSRuntime JSRuntime
 
-<h1>Hello, world!</h1>
+<PageTitle>Home</PageTitle>
 
-Welcome to your new app.
+<div class="main-content" id="mainContent">
+    <div class="game-background" id="gameContainer" style="display: none;">
+        <canvas id="breakoutCanvas"></canvas> <!-- Canvas for the Breakout game -->
+    </div>
+    <div class="content">
+        <h1>Welcome to V.NET</h1>
+        <div class="card-container" id="cardContainer">
+            <div class="card">
+                <h2>About This Page</h2>
+                <p>This page showcases my work and various projects I am involved in. Explore to learn more!</p>
+            </div>
+            <div class="card">
+                <h2>About Me</h2>
+                <p>I am a developer passionate about technology and creativity. Here you'll find my latest projects, blogs, and more.</p>
+            </div>
+            <div class="card">
+                <h2>Support & Donations</h2>
+                <p>If you'd like to support my work, feel free to contribute! Your support helps me continue developing awesome projects.</p>
+                <button class="btn-primary">Donate</button>
+            </div>
+        </div>
+    </div>
+</div>
 
-<SurveyPrompt Title="How is Blazor working for you?" />
+@code {
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            // Add a class to the body to disable scrolling on this page
+            await JSRuntime.InvokeVoidAsync("addNoScrollClass");
+            // Initialize the Breakout game based on device type
+            await JSRuntime.InvokeVoidAsync("checkDeviceAndInitializeGame");
+        }
+    }
+
+    public void Dispose()
+    {
+        // Remove the no-scroll class when navigating away from the page
+        JSRuntime.InvokeVoidAsync("removeNoScrollClass");
+    }
+}

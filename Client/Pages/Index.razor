@@ -17,12 +17,12 @@
             </div>
             <div class="card">
                 <h2>About Me</h2>
-                <p>I am a developer passionate about technology and creativity. Here you'll find my latest projects, blogs, and more.</p>
+                <p>I am a developer passionate about technology and creativity. Here you'll find my latest projects, blogs, useful tools and more.</p>
             </div>
             <div class="card">
                 <h2>Support & Donations</h2>
                 <p>If you'd like to support my work, feel free to contribute! Your support helps me continue developing awesome projects.</p>
-                <button class="btn-primary">Donate</button>
+                <button class="btn-primary" @onclick="OpenDonationPage">Donate</button>
             </div>
         </div>
     </div>
@@ -38,6 +38,12 @@
             // Initialize the Breakout game based on device type
             await JSRuntime.InvokeVoidAsync("checkDeviceAndInitializeGame");
         }
+    }
+
+    private async Task OpenDonationPage()
+    {
+        // Open the donation link in a new tab and focus on it
+        await JSRuntime.InvokeVoidAsync("open", "https://revolut.me/vlrn", "_blank");
     }
 
     public void Dispose()

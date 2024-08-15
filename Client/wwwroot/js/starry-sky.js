@@ -171,6 +171,3 @@ function updateStars() {
 
 // Add an event listener to regenerate stars when the window is resized
 window.addEventListener('resize', initializeStars);
-
-// Initialize the stars when the window loads
-window.onload = initializeStars;

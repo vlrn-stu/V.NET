@@ -2,8 +2,8 @@
 
 :root {
     /* Primary colors */
-    --primary-color: #1E88E5;
-    --secondary-color: #42A5F5;
+    --primary-color: #00AA00;
+    --secondary-color: #006E00;
     /* Background and Surface */
     --background-color: #121212;
     --surface-color: #1E1E1E;
@@ -27,7 +27,6 @@ html, body {
 .no-scroll {
     overflow: hidden; /* Disable scrolling */
 }
-
 .main-content {
     position: relative;
     overflow: hidden;
@@ -40,18 +39,21 @@ html, body {
     left: 0;
     width: 100%;
     height: 100%;
-    z-index: 2;
+    z-index: 1; /* Set a lower z-index for the game background */
+    pointer-events: none; /* Make it non-interactive */
 }
 
 canvas#breakoutCanvas {
     width: 100%;
     height: 100%;
     display: block;
+    z-index: 1; /* Ensure it stays behind content but above the background */
+    pointer-events: none; /* Ensure the canvas does not block interactions */
 }
 
 .content {
     position: relative;
-    z-index: 1;
+    z-index: 2; /* Ensure content appears in front of the game background */
     text-align: center;
     padding: 2rem;
 }
@@ -61,6 +63,7 @@ canvas#breakoutCanvas {
     justify-content: center;
     gap: 1rem;
     flex-wrap: wrap;
+    z-index: 0; /* Ensure card container appears in front of the game background */
 }
 
 .card {
@@ -71,6 +74,7 @@ canvas#breakoutCanvas {
     width: 300px;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
     margin: 1rem;
+    z-index: 2; /* Ensure cards appear in front of the game background */
 }
 
 .show-game .card-container {
@@ -86,14 +90,30 @@ a, .btn-link {
     color: var(--primary-color);
 }
 
+/* Primary Button Styles */
 .btn-primary {
     color: #fff;
     background-color: var(--primary-color);
-    border-color: #1861ac;
+    border-color: var(--primary-color);
 }
 
+    .btn-primary:hover, .btn-primary:focus {
+        background-color: var(--secondary-color);
+        border-color: var(--secondary-color);
+        color: #fff;
+        outline: none; /* Remove default outline */
+    }
+
+/* Focus and Active States */
 .btn:focus, .btn:active:focus, .btn-link.nav-link:focus, .form-control:focus, .form-check-input:focus {
     box-shadow: 0 0 0 0.1rem var(--surface-color), 0 0 0 0.25rem var(--secondary-color);
+    outline: none; /* Remove default outline */
+}
+
+/* Remove blue outline on button focus */
+.btn-primary:focus {
+    box-shadow: 0 0 0 0.2rem var(--secondary-color);
+    outline: none;
 }
 
 .content {

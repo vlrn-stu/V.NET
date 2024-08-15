@@ -59,8 +59,8 @@ function initializeBreakoutGame() {
     let leftPressed = false;
 
     // Colors
-    const ballColor = "#0095DD";
-    const paddleColor = "#0095DD";
+    const ballColor = "#FFFFFF";
+    const paddleColor = "#00AA00";
     const brickColorTier1 = "#FF5733";
     const brickColorTier2 = "#FFBD33";
     const brickColorTier3 = "#33FF57";
@@ -173,9 +173,6 @@ function initializeBreakoutGame() {
                         dy = -dy;
                         b.status = 0;
 
-                        // Animate the block breaking
-                        animateBlockBreak(b.x, b.y, brickWidth, brickHeight);
-
                         if (r === 0) {
                             dx *= 1.1;
                             dy *= 1.1;
@@ -191,40 +188,6 @@ function initializeBreakoutGame() {
                 }
             }
         }
-    }
-
-    function animateBlockBreak(x, y, width, height) {
-        const startTime = performance.now();
-        const duration = 500; // Duration of the animation in milliseconds
-
-        function animate() {
-            const currentTime = performance.now();
-            const elapsed = currentTime - startTime;
-            const progress = Math.min(elapsed / duration, 1);
-
-            // Calculate the current scale and opacity based on the animation progress
-            const scale = 1 - 0.5 * progress;
-            const opacity = 1 - progress;
-
-            // Draw the block with the current animation state
-            ctx.clearRect(x, y, width, height);
-            ctx.save();
-            ctx.translate(x + width / 2, y + height / 2);
-            ctx.scale(scale, scale);
-            ctx.translate(-(x + width / 2), -(y + height / 2));
-            ctx.fillStyle = `rgba(255, 255, 255, ${opacity})`;
-            ctx.fillRect(x, y, width, height);
-            ctx.restore();
-
-            if (progress < 1) {
-                requestAnimationFrame(animate);
-            } else {
-                // Clear the block after the animation is complete
-                ctx.clearRect(x, y, width, height);
-            }
-        }
-
-        requestAnimationFrame(animate);
     }
 
     function resetGame() {

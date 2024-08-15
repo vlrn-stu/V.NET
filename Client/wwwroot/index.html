@@ -6,10 +6,18 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
     <title>V.NET</title>
     <base href="/" />
+
+    <!-- Bootstrap and App CSS -->
     <link href="css/bootstrap/bootstrap.min.css" rel="stylesheet" />
     <link href="css/app.css" rel="stylesheet" />
-    <link rel="icon" type="image/png" href="favicon.png" />
     <link href="V.NET.Client.styles.css" rel="stylesheet" />
+
+    <!-- Favicon and PWA Manifest -->
+    <link rel="icon" type="image/png" href="favicon.png" />
+    <link rel="manifest" href="manifest.json" />
+
+    <!-- Theme color for the address bar (Mobile) -->
+    <meta name="theme-color" content="#00AA00" />  <!-- Match your primary color -->
 </head>
 
 <body>
@@ -26,9 +34,13 @@
         <a href="" class="reload">Reload</a>
         <a class="dismiss">🗙</a>
     </div>
+
+    <!-- Blazor WebAssembly JS -->
     <script src="_framework/blazor.webassembly.js"></script>
+    <!-- Additional JS -->
     <script src="js/starry-sky.js"></script>
     <script src="js/breakout.js"></script>
+    <script src="updateServiceWorker.js"></script>
 </body>
 
 </html>

@@ -1,0 +1,74 @@
+﻿@page "/tools/base64-encoder-decoder"
+@using V.NET.Client.Shared.Models.Tools
+@inherits ToolPageBase
+@inject IJSRuntime JSRuntime
+
+<PageTitle>Base64 Encoder/Decoder</PageTitle>
+
+<h3>Base64 Encoder/Decoder</h3>
+
+<div class="form-group">
+    <label for="inputText">Text</label>
+    <textarea id="inputText" class="form-control" rows="5" @bind="inputText"></textarea>
+</div>
+
+<div class="btn-group btn-group-toggle d-flex justify-content-center mt-3">
+    <button class="btn btn-primary flex-fill" @onclick="EncodeToBase64">Encode</button>
+    <button class="btn btn-secondary flex-fill" @onclick="DecodeFromBase64">Decode</button>
+</div>
+
+@if (!string.IsNullOrEmpty(result))
+{
+    var id = "resultBox";
+    <div class="mt-3">
+        <h4>Result:</h4>
+        <div id="resultBox" class="alert alert-success copy-result" @onclick="() => CopyToClipboard(id)">
+            @result
+        </div>
+    </div>
+}
+
+@code {
+    private string inputText = string.Empty;
+    private string result = string.Empty;
+
+    public override ToolModel Tool => new ToolModel
+        {
+            Name = "Base64 Encoder/Decoder",
+            Description = "Encode and decode text to and from Base64 format.",
+            Link = "/tools/base64-encoder-decoder"
+        };
+
+    private void EncodeToBase64()
+    {
+        if (!string.IsNullOrEmpty(inputText))
+        {
+            result = Convert.ToBase64String(System.Text.Encoding.UTF8.GetBytes(inputText));
+        }
+    }
+
+    private void DecodeFromBase64()
+    {
+        try
+        {
+            if (!string.IsNullOrEmpty(inputText))
+            {
+                var base64EncodedBytes = Convert.FromBase64String(inputText);
+                result = System.Text.Encoding.UTF8.GetString(base64EncodedBytes);
+            }
+        }
+        catch (FormatException)
+        {
+            result = "Invalid Base64 format.";
+        }
+    }
+
+    private async Task CopyToClipboard(string elementId)
+    {
+        if (!string.IsNullOrEmpty(result))
+        {
+            // Copy the result to the clipboard
+            await JSRuntime.InvokeVoidAsync("copyTextAndShake", result, elementId);
+        }
+    }
+}

@@ -29,3 +29,25 @@ window.copyTextAndShake = function (text) {
             console.error('Could not copy text: ', err);
         });
     }
+
+window.copyTextAndShake = function (text, elementId) {
+    // Copy the text to the clipboard
+    navigator.clipboard.writeText(text).then(function () {
+        console.log('Text copied to clipboard');
+
+        // Trigger the shake animation on the specified element
+        var element = document.getElementById(elementId);
+        if (element) {
+            element.classList.add('shake');
+
+            // Remove the shake class after the animation ends to reset
+            setTimeout(function () {
+                element.classList.remove('shake');
+            }, 500); // The duration of the shake animation
+        } else {
+            console.error('Element with ID ' + elementId + ' not found.');
+        }
+    }, function (err) {
+        console.error('Could not copy text: ', err);
+    });
+}

@@ -1,0 +1,80 @@
+﻿@page "/tools/uuid-generator"
+@inject IJSRuntime JSRuntime
+@using V.NET.Client.Shared.Models.Tools
+@inherits ToolPageBase
+
+<h3>UUID Generator</h3>
+
+<div class="form-group">
+    <label for="uuidType">UUID Type</label>
+    <select @bind="selectedUuidType" class="form-control" id="uuidType">
+        <option value="v4">UUID Version 4 (Random)</option>
+        <option value="v1">UUID Version 1 (Timestamp)</option>
+    </select>
+</div>
+
+<div class="form-group">
+    <label for="uuidCount">Number of UUIDs</label>
+    <input @bind="uuidCount" type="number" class="form-control" min="1" max="100" id="uuidCount" />
+</div>
+
+<button class="btn btn-primary mt-2" @onclick="GenerateUUIDs">Generate UUID(s)</button>
+
+<div class="mt-3">
+    <h4>Generated UUID(s):</h4>
+    @foreach (var uuid in generatedUuids)
+    {
+        var elementId = $"uuid-{uuid}";  // Assign ID here
+        <div id="@elementId" class="alert alert-success copy-uuid" @onclick="() => CopyToClipboard(uuid, elementId)">
+            @uuid
+        </div>
+    }
+
+</div>
+
+@code {
+    private string selectedUuidType = "v4";
+    private int uuidCount = 1;
+    private List<string> generatedUuids = new List<string>();
+
+    public override ToolModel Tool => new ToolModel
+        {
+            Name = "UUID Generator",
+            Description = "Generate universally unique identifiers (UUIDs) for your projects.",
+            Link = "/tools/uuid-generator"
+        };
+
+    private async Task CopyToClipboard(string uuid, string elementId)
+    {
+        if (!string.IsNullOrEmpty(uuid))
+        {
+            // Call the JS function and pass the UUID and the element ID
+            await JSRuntime.InvokeVoidAsync("copyTextAndShake", uuid, elementId);
+        }
+    }
+
+    private void GenerateUUIDs()
+    {
+        generatedUuids.Clear();
+        for (int i = 0; i < uuidCount; i++)
+        {
+            generatedUuids.Add(selectedUuidType == "v4" ? Guid.NewGuid().ToString() : GenerateUuidV1());
+        }
+    }
+
+    private string GenerateUuidV1()
+    {
+        // Simplified UUID v1 generation logic
+        var timestamp = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
+        var node = Guid.NewGuid().ToByteArray().Take(6).ToArray(); // Fake node ID for simplicity
+        var randomBytes = new byte[10];
+        new Random().NextBytes(randomBytes);
+
+        var uuidV1 = new byte[16];
+        Buffer.BlockCopy(BitConverter.GetBytes(timestamp), 0, uuidV1, 0, 8);
+        Buffer.BlockCopy(node, 0, uuidV1, 8, 6);
+        Buffer.BlockCopy(randomBytes, 0, uuidV1, 14, 2);
+
+        return new Guid(uuidV1).ToString();
+    }
+}

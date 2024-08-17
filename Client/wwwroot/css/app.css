@@ -143,11 +143,32 @@ a, .btn-link {
     transition: background-color 0.3s ease;
 }
 
-    .copy-password.shake {
-        animation: shake 0.5s ease;
+.shake {
+    animation: shake 0.5s ease;
+}
+
+.copy-uuid {
+    cursor: pointer;
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 1rem;
+    margin-bottom: 0.5rem;
+}
+
+
+.tool-card {
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    cursor: pointer;
+}
+
+    .tool-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+        border-color: var(--primary-color);
     }
 
-
+    .tool-card:active {
+        transform: translateY(-2px);
+    }
 
 .content {
     padding-top: 1.1rem;

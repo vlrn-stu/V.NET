@@ -1,0 +1,52 @@
+﻿@page "/tools/text-analyzer"
+@using V.NET.Client.Shared.Models.Tools
+@inherits ToolPageBase
+
+<PageTitle>Text Analyzer</PageTitle>
+
+<h3>Text Analyzer</h3>
+
+<div class="form-group">
+    <label for="textInput">Enter your text here:</label>
+    <textarea class="form-control" id="textInput" rows="6" @bind="inputText"></textarea>
+</div>
+
+<button class="btn btn-primary mt-2" @onclick="AnalyzeText">Analyze Text</button>
+
+@if (!string.IsNullOrEmpty(inputText))
+{
+    <div class="mt-3">
+        <h4>Text Analysis Results:</h4>
+        <ul>
+            <li><strong>Word Count:</strong> @wordCount</li>
+            <li><strong>Character Count:</strong> @characterCount</li>
+            <li><strong>Sentence Count:</strong> @sentenceCount</li>
+            <li><strong>Paragraph Count:</strong> @paragraphCount</li>
+        </ul>
+    </div>
+}
+
+@code {
+    private string inputText = string.Empty;
+    private int wordCount = 0;
+    private int characterCount = 0;
+    private int sentenceCount = 0;
+    private int paragraphCount = 0;
+
+    public override ToolModel Tool => new ToolModel
+        {
+            Name = "Text Analyzer",
+            Description = "Analyze your text for word, character, sentence, and paragraph counts.",
+            Link = "/tools/text-analyzer"
+        };
+
+    private void AnalyzeText()
+    {
+        wordCount = !string.IsNullOrWhiteSpace(inputText)
+            ? inputText.Split(new[] { ' ', '\n', '\r' }, StringSplitOptions.RemoveEmptyEntries).Length
+            : 0;
+        characterCount = inputText.Length;
+        sentenceCount = inputText.Split(new[] { '.', '!', '?' }, StringSplitOptions.RemoveEmptyEntries).Length;
+        paragraphCount = inputText.Split(new[] { "\n\n", "\r\n\r\n" }, StringSplitOptions.RemoveEmptyEntries).Length;
+    }
+}

@@ -53,7 +53,7 @@
 
         try
         {
-            var response = await JSRuntime.InvokeAsync<string>("postUrl", new { url = inputUrl });
+            var response = await JSRuntime.InvokeAsync<string>("postUrl", inputUrl);
             shortenedUrl = response;
         }
         catch (Exception ex)

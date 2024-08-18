@@ -4,6 +4,7 @@
 @using Shared.Models.Tools
 @using System.Text.RegularExpressions
 @inject NavigationManager NavigationManager
+@inject IJSRuntime JSRuntime
 
 <h3 class="text-center mb-4">Tools</h3>
 
@@ -45,6 +46,14 @@
     private string searchTerm = string.Empty;
     private List<ToolModel> filteredTools = new();
     private List<ToolModel> allTools = new();
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            JSRuntime.InvokeVoidAsync("removeNoScrollClass");
+        }
+    }
 
     protected override void OnInitialized()
     {

@@ -3,6 +3,7 @@ let animationFrameId; // To track the current animation frame ID
 
 function addNoScrollClass() {
     if (window.innerWidth > 768) {
+        window.scrollTo(0, 0);
         document.body.classList.add("no-scroll");
     }
 }

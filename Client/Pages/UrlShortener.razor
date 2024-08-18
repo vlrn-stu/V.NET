@@ -1,0 +1,72 @@
+﻿@page "/tools/url-shortener"
+@using V.NET.Client.Shared.Models.Tools
+@inject IJSRuntime JSRuntime
+@inherits ToolPageBase
+
+<PageTitle>URL Shortener</PageTitle>
+
+<h3 class="text-center mb-4">URL Shortener</h3>
+
+<div class="container d-flex flex-column align-items-center">
+    <div class="row justify-content-center w-100">
+        <div class="col-12 col-md-8">
+            <div class="form-group">
+                <label for="urlInput">Enter the URL to shorten:</label>
+                <input type="text" class="form-control" id="urlInput" @bind="inputUrl" />
+            </div>
+            <button class="btn btn-primary mt-3 w-100" @onclick="ShortenUrl">Shorten URL</button>
+        </div>
+    </div>
+
+    @if (!string.IsNullOrEmpty(shortenedUrl))
+    {
+        <div class="mt-4 w-100 d-flex justify-content-center">
+            <div class="card mt-3" style="max-width: 600px;">
+                <div class="card-body">
+                    <h4 class="text-center">Shortened URL:</h4>
+                    <div id="shortenedUrlBox" class="alert alert-success copy-url" @onclick="CopyShortenedUrl">
+                        @shortenedUrl
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+@code {
+    private string inputUrl = string.Empty;
+    private string shortenedUrl = string.Empty;
+
+    public override ToolModel Tool => new ToolModel
+        {
+            Name = "URL Shortener",
+            Description = "Shorten your long URLs into concise and manageable links.",
+            Link = "/tools/url-shortener"
+        };
+
+    private async Task ShortenUrl()
+    {
+        if (string.IsNullOrWhiteSpace(inputUrl))
+        {
+            return;
+        }
+
+        try
+        {
+            var response = await JSRuntime.InvokeAsync<string>("postUrl", new { url = inputUrl });
+            shortenedUrl = response;
+        }
+        catch (Exception ex)
+        {
+            shortenedUrl = $"Error: {ex.Message}";
+        }
+    }
+
+    private async Task CopyShortenedUrl()
+    {
+        if (!string.IsNullOrEmpty(shortenedUrl))
+        {
+            await JSRuntime.InvokeVoidAsync("copyTextAndShake", shortenedUrl, "shortenedUrlBox");
+        }
+    }
+}

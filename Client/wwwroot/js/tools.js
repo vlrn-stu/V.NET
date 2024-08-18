@@ -12,24 +12,6 @@ window.captureMouseInput = function (dotNetHelper) {
     });
 };
 
-window.copyTextAndShake = function (text) {
-        // Copy the text to the clipboard
-        navigator.clipboard.writeText(text).then(function () {
-            console.log('Password copied to clipboard');
-
-            // Trigger the shake animation directly on the password box
-            var passwordBox = document.getElementById('passwordBox');
-            passwordBox.classList.add('shake');
-
-            // Remove the shake class after the animation ends to reset
-            setTimeout(function () {
-                passwordBox.classList.remove('shake');
-            }, 500); // The duration of the shake animation
-        }, function (err) {
-            console.error('Could not copy text: ', err);
-        });
-    }
-
 window.copyTextAndShake = function (text, elementId) {
     // Copy the text to the clipboard
     navigator.clipboard.writeText(text).then(function () {
@@ -50,4 +32,35 @@ window.copyTextAndShake = function (text, elementId) {
     }, function (err) {
         console.error('Could not copy text: ', err);
     });
+}
+
+window.initializePaletteGenerator = function (dotNetHelper) {
+    document.addEventListener('keydown', function (event) {
+        if (event.code === 'Space') {
+            event.preventDefault();
+            dotNetHelper.invokeMethodAsync('GeneratePalette');
+        }
+    });
+};
+
+window.postUrl = async function (data) {
+    try {
+        const response = await fetch("https://valrina.com/s", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify(data)
+        });
+
+        if (!response.ok) {
+            throw new Error("Failed to shorten URL");
+        }
+
+        const result = await response.json();
+        return "https://valrina.com/s/" + result.shortCode;
+    } catch (error) {
+        console.error("Error shortening URL:", error);
+        throw error;
+    }
 }

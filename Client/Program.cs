@@ -23,11 +23,9 @@ foreach (var type in toolPageTypes)
     if (toolProperty != null)
     {
         // Create an instance of the type to access the non-static property
-        var instance = Activator.CreateInstance(type) as ToolPageBase;
-        if (instance != null)
+        if (Activator.CreateInstance(type) is ToolPageBase instance)
         {
-            var toolModel = toolProperty.GetValue(instance) as ToolModel;
-            if (toolModel != null)
+            if (toolProperty.GetValue(instance) is ToolModel toolModel)
             {
                 ToolPageRegistry.RegisterTool(toolModel);
             }

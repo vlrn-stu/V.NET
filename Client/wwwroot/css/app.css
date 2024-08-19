@@ -198,7 +198,6 @@ a, .btn-link {
 }
 
 
-
 .content {
     padding-top: 1.1rem;
 }
@@ -258,6 +257,11 @@ a, .btn-link {
     }
 }
 
+.list-group-item {
+    background-color: var(--surface-color);
+    color: var(--text-color-primary);
+    border: 1px solid var(--secondary-color);
+}
 
 #blazor-error-ui {
     background: var(--warning-color);

@@ -1,0 +1,135 @@
+﻿@page "/tools/json-to-csharp"
+@using System.Text
+@using V.NET.Client.Shared.Models.Tools
+@inherits ToolPageBase
+@inject IJSRuntime JSRuntime
+
+<PageTitle>JSON to C# Class Converter</PageTitle>
+
+<h3 class="text-center mb-4">JSON to C# Class Converter</h3>
+
+<div class="container d-flex flex-column align-items-center">
+    <div class="row justify-content-center w-100">
+        <div class="col-12 col-md-8 mx-auto">
+            <div class="form-group">
+                <label for="jsonInput">Enter your JSON here:</label>
+                <textarea class="form-control" id="jsonInput" rows="6" @bind="jsonInput"></textarea>
+            </div>
+
+            <button class="btn btn-primary mt-3 w-100" @onclick="ConvertJsonToCSharp">Convert to C#</button>
+
+            @if (!string.IsNullOrEmpty(csharpOutput))
+            {
+                <div class="form-group mt-3">
+                    <label for="csharpOutput">Generated C# Class:</label>
+                    <textarea class="form-control" id="csharpOutput" rows="10" readonly>@csharpOutput</textarea>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+@code {
+    private string jsonInput = string.Empty;
+    private string csharpOutput = string.Empty;
+    private int classCounter = 1;
+
+    public override ToolModel Tool => new ToolModel
+        {
+            Name = "JSON to C# Class Converter",
+            Description = "Convert JSON to C# classes with support for dictionaries, nested classes, and arrays.",
+            Link = "/tools/json-to-csharp"
+        };
+
+    private async Task CopyToClipboard()
+    {
+        if (!string.IsNullOrEmpty(csharpOutput))
+        {
+            await JSRuntime.InvokeVoidAsync("copyTextAndShake", csharpOutput, "csharp-output");
+        }
+    }
+
+    private async void ConvertJsonToCSharp()
+    {
+        try
+        {
+            var jsonObject = System.Text.Json.JsonDocument.Parse(jsonInput).RootElement;
+            csharpOutput = GenerateCSharpClasses(jsonObject, "RootClass");
+
+            // Wait for the text to render before invoking syntax highlighting
+            await Task.Delay(100);  // Adjust delay time if necessary
+
+            // Trigger syntax highlighting after rendering the code
+            await JSRuntime.InvokeVoidAsync("Prism.highlightAll");
+        }
+        catch (Exception ex)
+        {
+            csharpOutput = $"Error: {ex.Message}";
+        }
+    }
+
+    private string GenerateCSharpClasses(System.Text.Json.JsonElement element, string className)
+    {
+        StringBuilder classDefinitions = new StringBuilder();
+        GenerateCSharpClass(element, className, classDefinitions);
+        return classDefinitions.ToString();
+    }
+
+    private void GenerateCSharpClass(System.Text.Json.JsonElement element, string className, StringBuilder classDefinitions)
+    {
+        var classCode = $"public class {className}\n{{\n";
+
+        foreach (var property in element.EnumerateObject())
+        {
+            string propertyType = GetCSharpType(property.Value);
+            string propertyName = property.Name;
+
+            if (property.Value.ValueKind == System.Text.Json.JsonValueKind.Object)
+            {
+                classCounter++;
+                string nestedClassName = $"Class{classCounter}";
+                classCode += $"\tpublic {nestedClassName} {propertyName} {{ get; set; }}\n";
+                GenerateCSharpClass(property.Value, nestedClassName, classDefinitions);
+            }
+            else if (property.Value.ValueKind == System.Text.Json.JsonValueKind.Array)
+            {
+                if (property.Value[0].ValueKind == System.Text.Json.JsonValueKind.Object)
+                {
+                    classCounter++;
+                    string nestedClassName = $"Class{classCounter}";
+                    classCode += $"\tpublic List<{nestedClassName}> {propertyName} {{ get; set; }}\n";
+                    GenerateCSharpClass(property.Value[0], nestedClassName, classDefinitions);
+                }
+                else
+                {
+                    classCode += $"\tpublic List<{GetCSharpType(property.Value[0])}> {propertyName} {{ get; set; }}\n";
+                }
+            }
+            else if (property.Value.ValueKind == System.Text.Json.JsonValueKind.Undefined || property.Value.ValueKind == System.Text.Json.JsonValueKind.Null)
+            {
+                classCode += $"\tpublic object {propertyName} {{ get; set; }}\n";
+            }
+            else
+            {
+                classCode += $"\tpublic {propertyType} {propertyName} {{ get; set; }}\n";
+            }
+        }
+
+        classCode += "}";
+        classDefinitions.AppendLine(classCode);
+    }
+
+    private string GetCSharpType(System.Text.Json.JsonElement element)
+    {
+        return element.ValueKind switch
+        {
+            System.Text.Json.JsonValueKind.String => "string",
+            System.Text.Json.JsonValueKind.Number => element.TryGetInt64(out _) ? "int" : "double",
+            System.Text.Json.JsonValueKind.True or System.Text.Json.JsonValueKind.False => "bool",
+            System.Text.Json.JsonValueKind.Object => "Dictionary<string, object>",
+            System.Text.Json.JsonValueKind.Array => "List<object>",
+            System.Text.Json.JsonValueKind.Null or System.Text.Json.JsonValueKind.Undefined => "object",
+            _ => "string",
+        };
+    }
+}

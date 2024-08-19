@@ -1,0 +1,92 @@
+﻿@page "/tools/task-tracker"
+@using V.NET.Client.Shared.Models.Tools
+@inherits ToolPageBase
+@inject IJSRuntime JSRuntime
+
+<PageTitle>Task Tracker</PageTitle>
+
+<h3 class="text-center mb-4">Task Tracker</h3>
+
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-12 col-md-8">
+            <div class="input-group mb-3">
+                <input type="text" class="form-control" placeholder="Enter a new task..." @oninput="HandleTaskInput" value="@newTask" />
+                <button class="btn btn-primary" @onclick="AddTask">Add Task</button>
+            </div>
+
+            <ul class="list-group">
+                @foreach (var task in tasks)
+                {
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        <div>
+                            <input type="checkbox" checked="@task.IsCompleted" @onclick="() => ToggleTaskCompletion(task)" class="me-2" />
+                            <span class="@((task.IsCompleted ? "text-decoration-line-through" : ""))">@task.Description</span>
+                        </div>
+                        <button class="btn btn-danger btn-sm" @onclick="() => RemoveTask(task)">Delete</button>
+                    </li>
+                }
+            </ul>
+        </div>
+    </div>
+</div>
+
+@code {
+    private string newTask = string.Empty;
+    private List<TaskModel> tasks = new List<TaskModel>();
+
+    public override ToolModel Tool => new ToolModel
+        {
+            Name = "Task Tracker",
+            Description = "Track your tasks with this simple task tracker that stores data in your browser.",
+            Link = "/tools/task-tracker"
+        };
+
+    protected override async Task OnInitializedAsync()
+    {
+        var savedTasks = await JSRuntime.InvokeAsync<string>("localStorage.getItem", "tasks");
+        if (!string.IsNullOrEmpty(savedTasks))
+        {
+            tasks = System.Text.Json.JsonSerializer.Deserialize<List<TaskModel>>(savedTasks);
+        }
+    }
+
+    private void HandleTaskInput(ChangeEventArgs e)
+    {
+        newTask = e.Value.ToString();
+    }
+
+    private async Task AddTask()
+    {
+        if (!string.IsNullOrWhiteSpace(newTask))
+        {
+            tasks.Add(new TaskModel { Description = newTask });
+            newTask = string.Empty;
+            await SaveTasks();
+        }
+    }
+
+    private void ToggleTaskCompletion(TaskModel task)
+    {
+        task.IsCompleted = !task.IsCompleted;
+        SaveTasks(); // Save changes
+    }
+
+    private async Task RemoveTask(TaskModel task)
+    {
+        tasks.Remove(task);
+        await SaveTasks();
+    }
+
+    private async Task SaveTasks()
+    {
+        var tasksJson = System.Text.Json.JsonSerializer.Serialize(tasks);
+        await JSRuntime.InvokeVoidAsync("localStorage.setItem", "tasks", tasksJson);
+    }
+
+    private class TaskModel
+    {
+        public string Description { get; set; }
+        public bool IsCompleted { get; set; }
+    }
+}

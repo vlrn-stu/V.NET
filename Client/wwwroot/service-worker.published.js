@@ -1,4 +1,4 @@
-const CACHE_NAME = 'dynamic-cache-v1';
+const CACHE_NAME = 'dynamic-cache-v2';
 
 // Install event - skip waiting and activate the new service worker immediately
 self.addEventListener('install', (event) => {

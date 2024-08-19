@@ -1,0 +1,13 @@
+[
+  {
+    "outputFileName": "wwwroot/js/site.min.js",
+    "inputFiles": [
+      "wwwroot/js/breakout.js",
+      "wwwroot/js/starry-sky.js",
+      "wwwroot/js/tools.js"
+    ],
+    "minify": {
+      "enabled": true
+    }
+  }
+]

@@ -58,6 +58,28 @@ canvas#breakoutCanvas {
     padding: 2rem;
 }
 
+.iframe-container {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    width: 100%;
+    height: 100vh; /* Full viewport height */
+    padding: 0; /* Remove any additional padding */
+    margin: 0; /* Remove any additional margin */
+    z-index: 1; /* Ensure it appears above any background elements */
+    overflow: hidden; /* Ensure no scrollbars appear */
+}
+
+    .iframe-container iframe {
+        width: 100%;
+        height: 100%;
+        border: none; /* Remove border */
+        padding: 0; /* Remove any additional padding */
+        margin: 0; /* Remove any additional margin */
+    }
+
 .card-container {
     display: flex;
     justify-content: center;

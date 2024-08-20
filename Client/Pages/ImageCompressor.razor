@@ -1,0 +1,81 @@
+﻿@page "/tools/image-compressor"
+@using V.NET.Client.Shared.Models.Tools
+@using Microsoft.AspNetCore.Components.Forms
+@inject IJSRuntime JSRuntime
+@inherits ToolPageBase
+
+<PageTitle>Image Compressor</PageTitle>
+
+<h3 class="text-center mb-4">Image Compressor</h3>
+
+<div class="container d-flex flex-column align-items-center">
+    <div class="row justify-content-center w-100">
+        <div class="col-12 col-md-8">
+            <div class="form-group">
+                <label for="fileInput" class="custom-file-upload">
+                    Choose an Image
+                </label>
+                <InputFile id="fileInput" OnChange="HandleFileSelected" class="form-control-file" accept="image/*" />
+            </div>
+
+            <div class="form-group">
+                <label for="desiredSize">Desired Output Size (KB):</label>
+                <input @bind="desiredSize" type="number" class="form-control" id="desiredSize" />
+            </div>
+
+            <button class="btn btn-primary mt-3 w-100" @onclick="CompressImage" disabled="@(!isImageSelected)">Compress Image</button>
+        </div>
+    </div>
+
+    @if (!string.IsNullOrEmpty(compressedImageUri))
+    {
+        <div class="mt-4 w-100 d-flex justify-content-center">
+            <div class="card mt-3 p-3" style="width: 100%; max-width: 800px;">
+                <h4 class="text-center">Compressed Image:</h4>
+                <img src="@compressedImageUri" alt="Compressed Image" class="img-fluid" />
+                <button class="btn btn-primary mt-3 w-100" @onclick="DownloadCompressedImage">Download Image</button>
+            </div>
+        </div>
+    }
+</div>
+
+@code {
+    private string compressedImageUri = string.Empty;
+    private byte[]? fileBytes;
+    private int desiredSize;
+    private bool isImageSelected = false;
+
+    public override ToolModel Tool => new ToolModel
+    {
+        Name = "Image Compressor",
+        Description = "Compress images to a desired size in KB.",
+        Link = "/tools/image-compressor"
+    };
+
+    private async Task HandleFileSelected(InputFileChangeEventArgs e)
+    {
+        var file = e.File;
+        using (var memoryStream = new MemoryStream())
+        {
+            await file.OpenReadStream().CopyToAsync(memoryStream);
+            fileBytes = memoryStream.ToArray();
+        }
+        isImageSelected = true;
+    }
+
+    private async Task CompressImage()
+    {
+        if (fileBytes != null && fileBytes.Length > 0 && desiredSize > 0)
+        {
+            compressedImageUri = await JSRuntime.InvokeAsync<string>("compressImage", fileBytes, desiredSize);
+        }
+    }
+
+    private async Task DownloadCompressedImage()
+    {
+        if (!string.IsNullOrEmpty(compressedImageUri))
+        {
+            await JSRuntime.InvokeVoidAsync("downloadImage", compressedImageUri, "compressed_image.png");
+        }
+    }
+}

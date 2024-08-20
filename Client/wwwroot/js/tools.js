@@ -64,3 +64,44 @@ window.postUrl = async function (data) {
         throw error;
     }
 }
+
+window.compressImage = async function (imageBytes, desiredSize) {
+    return new Promise((resolve) => {
+        const blob = new Blob([imageBytes]);
+        const url = URL.createObjectURL(blob);
+        const img = new Image();
+
+        img.onload = function () {
+            const canvas = document.createElement("canvas");
+            const ctx = canvas.getContext("2d");
+
+            // Set canvas dimensions to image dimensions
+            canvas.width = img.width;
+            canvas.height = img.height;
+
+            ctx.drawImage(img, 0, 0);
+
+            let quality = 1.0;
+            let compressedDataUrl;
+
+            // Reduce quality until desired size is met
+            do {
+                compressedDataUrl = canvas.toDataURL("image/jpeg", quality);
+                quality -= 0.05;
+            } while (compressedDataUrl.length / 1024 > desiredSize && quality > 0.1);
+
+            resolve(compressedDataUrl);
+        };
+
+        img.src = url;
+    });
+};
+
+window.downloadImage = function (dataUrl, filename) {
+    const link = document.createElement("a");
+    link.href = dataUrl;
+    link.download = filename;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+};

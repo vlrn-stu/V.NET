@@ -192,6 +192,41 @@ a, .btn-link {
         transform: translateY(-2px);
     }
 
+/* Hide the actual file input */
+input[type="file"] {
+    display: none;
+}
+
+/* Style the label to look like a button */
+.custom-file-upload {
+    display: inline-block;
+    padding: 0.5rem 1rem;
+    cursor: pointer;
+    color: #fff;
+    background-color: var(--primary-color);
+    border: 1px solid var(--primary-color);
+    border-radius: 4px;
+    text-align: center;
+    transition: background-color 0.3s ease, border-color 0.3s ease;
+}
+
+    /* Style for hover and focus states */
+    .custom-file-upload:hover, .custom-file-upload:focus {
+        background-color: var(--secondary-color);
+        border-color: var(--secondary-color);
+        outline: none;
+    }
+
+    /* Disabled state */
+    .custom-file-upload:disabled {
+        background-color: var(--surface-color);
+        border-color: var(--surface-color);
+        color: var(--text-color-secondary);
+        cursor: not-allowed;
+    }
+
+
+
 .color-box {
     width: 100px;
     height: 100px;

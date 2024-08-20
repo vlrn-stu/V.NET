@@ -1,0 +1,91 @@
+﻿@page "/tools/docx-metadata-extractor"
+@using DocumentFormat.OpenXml.Packaging
+@using Microsoft.AspNetCore.Components.Forms
+@using V.NET.Client.Shared.Models.Tools
+@inherits ToolPageBase
+
+<PageTitle>DOCX Metadata Extractor</PageTitle>
+
+<h3 class="text-center mb-4">DOCX Metadata Extractor</h3>
+
+<div class="container d-flex flex-column align-items-center">
+    <div class="row justify-content-center w-100">
+        <div class="col-12 col-md-8">
+            <div class="form-group">
+                <label for="fileInput" class="custom-file-upload">
+                    Choose a DOCX file
+                </label>
+                <InputFile id="fileInput" OnChange="HandleFileSelected" class="form-control-file" accept=".docx" />
+            </div>
+        </div>
+    </div>
+
+    @if (!string.IsNullOrEmpty(metadata))
+    {
+        <div class="mt-4 w-100 d-flex justify-content-center">
+            <div class="card mt-3 p-3" style="width: 100%; max-width: 800px;">
+                <h4 class="text-center">Extracted Metadata:</h4>
+                <pre>@metadata</pre>
+            </div>
+        </div>
+    }
+</div>
+
+@code {
+    private string metadata = string.Empty;
+
+    public override ToolModel Tool => new ToolModel
+        {
+            Name = "DOCX Metadata Extractor",
+            Description = "Extract metadata from DOCX files such as title, author, subject, and more.",
+            Link = "/tools/docx-metadata-extractor"
+        };
+
+    private async Task HandleFileSelected(InputFileChangeEventArgs e)
+    {
+        var file = e.File;
+
+        // Create a memory stream to hold the file content
+        using (var memoryStream = new MemoryStream())
+        {
+            // Read the file into the memory stream asynchronously
+            await file.OpenReadStream().CopyToAsync(memoryStream);
+
+            // Set the position of the memory stream back to the beginning
+            memoryStream.Position = 0;
+
+            // Extract metadata from the DOCX file
+            metadata = ExtractDocxMetadata(memoryStream);
+        }
+    }
+
+    private string ExtractDocxMetadata(Stream stream)
+    {
+        var metadataBuilder = new System.Text.StringBuilder();
+
+        try
+        {
+            // Open the DOCX file using the Open XML SDK
+            using (var doc = WordprocessingDocument.Open(stream, false))
+            {
+                var coreProps = doc.PackageProperties;
+
+                metadataBuilder.AppendLine($"Title: {coreProps.Title}");
+                metadataBuilder.AppendLine($"Author: {coreProps.Creator}");
+                metadataBuilder.AppendLine($"Subject: {coreProps.Subject}");
+                metadataBuilder.AppendLine($"Keywords: {coreProps.Keywords}");
+                metadataBuilder.AppendLine($"Description: {coreProps.Description}");
+                metadataBuilder.AppendLine($"Last Modified By: {coreProps.LastModifiedBy}");
+                metadataBuilder.AppendLine($"Revision: {coreProps.Revision}");
+                metadataBuilder.AppendLine($"Created: {coreProps.Created}");
+                metadataBuilder.AppendLine($"Modified: {coreProps.Modified}");
+            }
+        }
+        catch (Exception ex)
+        {
+            metadataBuilder.AppendLine($"Error extracting metadata: {ex.Message}");
+        }
+
+        return metadataBuilder.ToString();
+    }
+}

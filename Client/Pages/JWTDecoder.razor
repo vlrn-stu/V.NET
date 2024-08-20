@@ -1,0 +1,101 @@
+﻿@page "/tools/jwt-decoder"
+@using System.Text.Json
+@using V.NET.Client.Shared.Models.Tools
+@inherits ToolPageBase
+
+<PageTitle>JWT Decoder</PageTitle>
+
+<h3 class="text-center mb-4">JWT Decoder</h3>
+
+<div class="container d-flex flex-column align-items-center">
+    <div class="row justify-content-center w-100">
+        <div class="col-12 col-md-8">
+            <div class="form-group">
+                <label for="jwtInput">Enter your JWT:</label>
+                <textarea class="form-control" id="jwtInput" rows="4" @bind="jwtInput"></textarea>
+            </div>
+            <button class="btn btn-primary mt-3 w-100" @onclick="DecodeJwt">Decode JWT</button>
+        </div>
+    </div>
+
+    @if (!string.IsNullOrEmpty(decodedHeader) || !string.IsNullOrEmpty(decodedPayload))
+    {
+        <div class="mt-4 w-100 d-flex justify-content-center">
+            <div class="card mt-3 p-3" style="width: 100%; max-width: 800px;">
+                <h4 class="text-center">Decoded JWT:</h4>
+                <div class="form-group">
+                    <label>Header:</label>
+                    <textarea class="form-control" rows="4" readonly>@decodedHeader</textarea>
+                </div>
+                <div class="form-group mt-3">
+                    <label>Payload:</label>
+                    <textarea class="form-control" rows="8" readonly>@decodedPayload</textarea>
+                </div>
+                <div class="form-group mt-3">
+                    <label>Signature:</label>
+                    <input type="text" class="form-control" readonly value="@signature" />
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+@code {
+    private string jwtInput = string.Empty;
+    private string decodedHeader = string.Empty;
+    private string decodedPayload = string.Empty;
+    private string signature = string.Empty;
+
+    public override ToolModel Tool => new ToolModel
+        {
+            Name = "JWT Decoder",
+            Description = "Decode and inspect JSON Web Tokens (JWTs).",
+            Link = "/tools/jwt-decoder"
+        };
+
+    private void DecodeJwt()
+    {
+        if (string.IsNullOrEmpty(jwtInput))
+            return;
+
+        try
+        {
+            var parts = jwtInput.Split('.');
+            if (parts.Length != 3)
+            {
+                decodedHeader = "Invalid JWT: Incorrect number of segments.";
+                decodedPayload = string.Empty;
+                signature = string.Empty;
+                return;
+            }
+
+            decodedHeader = DecodeBase64Url(parts[0]);
+            decodedPayload = DecodeBase64Url(parts[1]);
+            signature = parts[2];  // Signature part, no need to decode
+
+            // Format the JSON output
+            decodedHeader = JsonSerializer.Serialize(JsonSerializer.Deserialize<JsonElement>(decodedHeader), new JsonSerializerOptions { WriteIndented = true });
+            decodedPayload = JsonSerializer.Serialize(JsonSerializer.Deserialize<JsonElement>(decodedPayload), new JsonSerializerOptions { WriteIndented = true });
+        }
+        catch (Exception ex)
+        {
+            decodedHeader = $"Error decoding JWT: {ex.Message}";
+            decodedPayload = string.Empty;
+            signature = string.Empty;
+        }
+    }
+
+    private string DecodeBase64Url(string input)
+    {
+        input = input.Replace('-', '+').Replace('_', '/');
+
+        switch (input.Length % 4)
+        {
+            case 2: input += "=="; break;
+            case 3: input += "="; break;
+        }
+
+        var bytes = Convert.FromBase64String(input);
+        return System.Text.Encoding.UTF8.GetString(bytes);
+    }
+}

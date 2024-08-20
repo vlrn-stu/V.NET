@@ -50,7 +50,7 @@
             var response = await JSRuntime.InvokeAsync<string>("postUrl", inputUrl);
             shortenedUrl = response;
         }
-        catch (Exception ex)
+        catch (Exception)
         {
             shortenedUrl = "F, that did not work...";
         }

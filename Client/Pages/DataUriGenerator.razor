@@ -1,0 +1,96 @@
+﻿@page "/tools/data-uri-generator"
+@using V.NET.Client.Shared.Models.Tools
+@inject IJSRuntime JSRuntime
+@inherits ToolPageBase
+@using Microsoft.AspNetCore.Components.Forms;
+
+<PageTitle>Data URI Generator</PageTitle>
+
+<h3 class="text-center mb-4">Data URI Generator</h3>
+
+<div class="container d-flex flex-column align-items-center">
+    <div class="row justify-content-center w-100">
+        <div class="col-12 col-md-8">
+            <div class="form-group">
+                <label for="fileInput" class="custom-file-upload">
+                    Choose a file
+                </label>
+                <InputFile id="fileInput" OnChange="HandleFileSelected" class="form-control-file" />
+
+                @if (!string.IsNullOrEmpty(fileName))
+                {
+                    <p class="mt-2">Selected file: <strong>@fileName</strong></p>
+                }
+            </div>
+            <button class="btn btn-primary mt-3 w-100" @onclick="GenerateDataUri" disabled="@string.IsNullOrEmpty(fileName)">Generate Data URI</button>
+        </div>
+    </div>
+
+    @if (!string.IsNullOrEmpty(dataUri))
+    {
+        <div class="mt-4 w-100 d-flex justify-content-center">
+            <div class="card mt-3 p-3" style="width: 100%; max-width: 800px;">
+                <h4 class="text-center">Generated Data URI:</h4>
+                <textarea id="fileUriBox" class="form-control" rows="5" readonly>@dataUri</textarea>
+                <button class="btn btn-primary mt-3 w-100" @onclick="CopyDataUri">Copy to Clipboard</button>
+            </div>
+        </div>
+    }
+</div>
+
+@code {
+    private string dataUri = string.Empty;
+    private string fileName = string.Empty;
+    private byte[]? fileBytes;
+
+    public override ToolModel Tool => new ToolModel
+        {
+            Name = "Data URI Generator",
+            Description = "Convert any file to a Data URI for easy embedding.",
+            Link = "/tools/data-uri-generator"
+        };
+
+    private async Task HandleFileSelected(InputFileChangeEventArgs e)
+    {
+        var file = e.File;
+        fileName = file.Name;
+
+        using (var memoryStream = new MemoryStream())
+        {
+            await file.OpenReadStream().CopyToAsync(memoryStream);
+            fileBytes = memoryStream.ToArray();
+        }
+    }
+
+    private void GenerateDataUri()
+    {
+        if (fileBytes != null && fileBytes.Length > 0)
+        {
+            var base64Data = Convert.ToBase64String(fileBytes);
+            var mimeType = GetMimeType(fileName);
+            dataUri = $"data:{mimeType};base64,{base64Data}";
+        }
+    }
+
+    private string GetMimeType(string fileName)
+    {
+        return fileName.ToLower() switch
+        {
+            string ext when ext.EndsWith(".png") => "image/png",
+            string ext when ext.EndsWith(".jpg") || ext.EndsWith(".jpeg") => "image/jpeg",
+            string ext when ext.EndsWith(".gif") => "image/gif",
+            string ext when ext.EndsWith(".svg") => "image/svg+xml",
+            string ext when ext.EndsWith(".pdf") => "application/pdf",
+            string ext when ext.EndsWith(".txt") => "text/plain",
+            _ => "application/octet-stream",
+        };
+    }
+
+    private async Task CopyDataUri()
+    {
+        if (!string.IsNullOrEmpty(dataUri))
+        {
+            await JSRuntime.InvokeVoidAsync("copyTextAndShake", dataUri, "fileUriBox");
+        }
+    }
+}

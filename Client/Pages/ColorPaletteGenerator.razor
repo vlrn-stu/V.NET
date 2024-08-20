@@ -10,7 +10,7 @@
 <div class="container d-flex flex-column align-items-center">
     <div class="row justify-content-center w-100">
         <div class="col-12 text-center">
-            <h5>Press "Space" to generate a new color palette. Click on a color to copy the HEX code.</h5>
+            <h5>Press "Space" or click the button below to generate a new color palette. Click on a color to copy the HEX code.</h5>
         </div>
     </div>
 
@@ -18,7 +18,7 @@
         <div class="col-12 d-flex flex-wrap justify-content-center">
             @foreach (var color in colors)
             {
-                var id = "color - " + @color.GetHashCode();
+                var id = "color-" + @color.GetHashCode();
                 <div id="@id" class="color-box m-2"
                      style="background-color: @color;"
                      @onmouseover="() => hoveredColor = color"
@@ -27,6 +27,12 @@
                     <span class="color-text" style="visibility: @(hoveredColor == color ? "visible" : "hidden")">@color</span>
                 </div>
             }
+        </div>
+    </div>
+
+    <div class="row justify-content-center w-100 mt-4">
+        <div class="col-12 text-center">
+            <button class="btn btn-primary" @onclick="GeneratePalette">Generate New Palette</button>
         </div>
     </div>
 </div>

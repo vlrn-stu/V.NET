@@ -105,3 +105,34 @@ window.downloadImage = function (dataUrl, filename) {
     link.click();
     document.body.removeChild(link);
 };
+
+async function mergePdfs(pdfBytesList) {
+    const { PDFDocument } = window.PDFLib;  // Correct access to pdf-lib
+
+    // Create a new PDF document
+    const mergedPdf = await PDFDocument.create();
+
+    for (const pdfBytes of pdfBytesList) {
+        const pdfDoc = await PDFDocument.load(pdfBytes);
+        const copiedPages = await mergedPdf.copyPages(pdfDoc, pdfDoc.getPageIndices());
+
+        copiedPages.forEach(page => {
+            mergedPdf.addPage(page);
+        });
+    }
+
+    // Serialize the merged PDF document to bytes
+    const mergedPdfBytes = await mergedPdf.save();
+
+    // Trigger file download
+    const blob = new Blob([mergedPdfBytes], { type: 'application/pdf' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'merged.pdf';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+}
+

@@ -1,0 +1,90 @@
+﻿@page "/tools/pdf-merge"
+@using V.NET.Client.Shared.Models.Tools
+@inject IJSRuntime JSRuntime
+@inherits ToolPageBase
+@using Microsoft.AspNetCore.Components.Forms;
+
+<PageTitle>PDF Merge Tool</PageTitle>
+
+<h3 class="text-center mb-4">PDF Merge Tool</h3>
+
+<div class="container d-flex flex-column align-items-center">
+    <div class="row justify-content-center w-100">
+        <div class="col-12 col-md-8">
+            <h4 class="text-center">Merge PDFs</h4>
+            <div class="form-group">
+                <label for="mergeInput" class="custom-file-upload">
+                    Choose PDFs to Merge (Max 100MB each)
+                </label>
+                <InputFile id="mergeInput" OnChange="HandleFilesSelectedForMerge" class="form-control-file" multiple accept=".pdf" />
+            </div>
+            @if (!string.IsNullOrEmpty(warningMessage))
+            {
+                <div class="alert alert-warning">@warningMessage</div>
+            }
+            @if (mergeFiles.Any())
+            {
+                <ul class="list-group mt-2">
+                    @foreach (var file in mergeFiles)
+                    {
+                        <li class="list-group-item">@file.Name (@(file.Size / 1024) KB)</li>
+                    }
+                </ul>
+            }
+            <button class="btn btn-primary mt-3 w-100" @onclick="MergePdfs" disabled="@(!mergeFiles.Any())">Merge PDFs</button>
+        </div>
+    </div>
+</div>
+
+@code {
+    private List<IBrowserFile> mergeFiles = new();
+    private const long maxFileSize = 1024 * 1024 * 100; // 100 MB
+    private string warningMessage = string.Empty;
+
+    public override ToolModel Tool => new ToolModel
+        {
+            Name = "PDF Merge Tool",
+            Description = "Merge multiple PDFs into one.",
+            Link = "/tools/pdf-merge"
+        };
+
+    private void HandleFilesSelectedForMerge(InputFileChangeEventArgs e)
+    {
+        warningMessage = string.Empty;
+        mergeFiles = new List<IBrowserFile>();
+
+        foreach (var file in e.GetMultipleFiles())
+        {
+            if (file.Size > maxFileSize)
+            {
+                warningMessage += $"File {file.Name} is larger than 100MB and was not selected.\n";
+            }
+            else
+            {
+                mergeFiles.Add(file);
+            }
+        }
+
+        if (!string.IsNullOrEmpty(warningMessage))
+        {
+            StateHasChanged(); // Update the UI to show the warning message
+        }
+    }
+
+    private async Task MergePdfs()
+    {
+        var pdfBytesList = new List<byte[]>();
+
+        foreach (var file in mergeFiles)
+        {
+            using (var stream = file.OpenReadStream(maxFileSize))
+            {
+                var memoryStream = new MemoryStream();
+                await stream.CopyToAsync(memoryStream);
+                pdfBytesList.Add(memoryStream.ToArray());
+            }
+        }
+
+        await JSRuntime.InvokeVoidAsync("mergePdfs", pdfBytesList);
+    }
+}

@@ -136,3 +136,60 @@ async function mergePdfs(pdfBytesList) {
     URL.revokeObjectURL(url);
 }
 
+async function splitPdf(pdfBytes, splitOption, splitPages, fileName) {
+    const { PDFDocument } = window.PDFLib;
+
+    const pdfDoc = await PDFDocument.load(pdfBytes);
+    const pageCount = pdfDoc.getPageCount();
+    const splitPoints = splitPages.split(',').map(Number).filter(p => p > 0 && p <= pageCount);
+
+    let splitDocuments = [];
+
+    if (splitOption === 'EveryPage') {
+        for (let i = 0; i < pageCount; i++) {
+            const newPdf = await PDFDocument.create();
+            const [page] = await newPdf.copyPages(pdfDoc, [i]);
+            newPdf.addPage(page);
+            splitDocuments.push(newPdf);
+        }
+    } else {
+        if (splitPoints.length === 0) {
+            alert("Please provide valid page numbers to split.");
+            return;
+        }
+
+        splitPoints.sort((a, b) => a - b); // Ensure the split points are in order
+        splitPoints.push(pageCount + 1); // Add the last page boundary
+
+        let previousSplit = 0;
+        for (let i = 0; i < splitPoints.length; i++) {
+            const newPdf = await PDFDocument.create();
+            const startPage = previousSplit;
+            const endPage = splitPoints[i] - 1;
+
+            for (let j = startPage; j < endPage; j++) {
+                const [page] = await newPdf.copyPages(pdfDoc, [j]);
+                newPdf.addPage(page);
+            }
+
+            splitDocuments.push(newPdf);
+            previousSplit = splitPoints[i]; // Update previous split point
+        }
+    }
+
+    splitDocuments.forEach(async (doc, index) => {
+        const docBytes = await doc.save();
+        const blob = new Blob([docBytes], { type: 'application/pdf' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `${fileName}_${index + 1}.pdf`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+    });
+}
+
+
+

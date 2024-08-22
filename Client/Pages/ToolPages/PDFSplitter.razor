@@ -1,0 +1,99 @@
+﻿@page "/tools/pdf-split"
+@using V.NET.Client.Shared.Models.Tools
+@inject IJSRuntime JSRuntime
+@inherits ToolPageBase
+@using Microsoft.AspNetCore.Components.Forms;
+
+<PageTitle>PDF Split Tool</PageTitle>
+
+<h3 class="text-center mb-4">PDF Split Tool</h3>
+
+<div class="container d-flex flex-column align-items-center">
+    <div class="row justify-content-center w-100">
+        <div class="col-12 col-md-8">
+            <h4 class="text-center">Split PDF</h4>
+            <div class="form-group">
+                <label for="splitInput" class="custom-file-upload">
+                    Choose PDF to Split (Max 100MB)
+                </label>
+                <InputFile id="splitInput" OnChange="HandleFileSelectedForSplit" class="form-control-file" accept=".pdf" />
+            </div>
+
+            @if (splitFile != null)
+            {
+                <p class="mt-2">Selected file: <strong>@splitFile.Name</strong></p>
+            }
+
+            <div class="form-group">
+                <label for="splitOption">Split Option</label>
+                <select class="form-control" @bind="splitOption">
+                    <option value="EveryPage">Split Every Page</option>
+                    <option value="AtPage">Split at Page(s)</option>
+                </select>
+            </div>
+
+            @if (splitOption == "AtPage")
+            {
+                <div class="form-group">
+                    <label for="splitPages">Enter Page Numbers (comma-separated):</label>
+                    <input type="text" class="form-control" placeholder="1,2,3" @bind="splitPages" />
+                </div>
+            }
+
+            @if (!string.IsNullOrEmpty(warningMessage))
+            {
+                <div class="alert alert-warning">@warningMessage</div>
+            }
+            <button class="btn btn-primary mt-3 w-100" @onclick="SplitPdf" disabled="@(splitFile == null)">Split PDF</button>
+        </div>
+    </div>
+</div>
+
+@code {
+    private IBrowserFile? splitFile;
+    private const long maxFileSize = 1024 * 1024 * 100; // 100 MB
+    private string warningMessage = string.Empty;
+    private string splitOption = "AtPage"; // Default split option
+    private string splitPages = ""; // Comma-separated list of pages to split at
+
+    public override ToolModel Tool => new ToolModel
+        {
+            Name = "PDF Split Tool",
+            Description = "Split a PDF into individual pages or at specified page numbers.",
+            Link = "/tools/pdf-split"
+        };
+
+    private void HandleFileSelectedForSplit(InputFileChangeEventArgs e)
+    {
+        warningMessage = string.Empty;
+        var file = e.File;
+
+        if (file.Size > maxFileSize)
+        {
+            warningMessage = $"File {file.Name} is larger than 100MB and was not selected.";
+            splitFile = null;
+        }
+        else
+        {
+            splitFile = file;
+        }
+
+        StateHasChanged(); // Update the UI to show the selected file and enable the button
+    }
+
+    private async Task SplitPdf()
+    {
+        if (splitFile != null)
+        {
+            using (var stream = splitFile.OpenReadStream(maxFileSize))
+            {
+                var memoryStream = new MemoryStream();
+                await stream.CopyToAsync(memoryStream);
+                var fileBytes = memoryStream.ToArray();
+
+                // Split PDF in JavaScript
+                await JSRuntime.InvokeVoidAsync("splitPdf", fileBytes, splitOption, splitPages, splitFile.Name.Replace(".pdf",""));
+            }
+        }
+    }
+}
